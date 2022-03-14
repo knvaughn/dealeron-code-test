@@ -2,100 +2,99 @@
   <div class="is-flex is-flex-direction-column">
     <div class="notification is-primary">
       Welcome to my application for <strong>Problem Two: Sales Taxes.</strong><br>
-      Add your items to the Shopping Basket using the table below. Alternatively, you can copy/paste text into the <strong>Custom Input</strong> field, which will override and disable the table.
+      Add your items to the Shopping Basket using the table below. Optionally, you can add sample imputs to the table by selecting the <strong>Input1, Input2, or Input3</strong> buttons.
     </div>
-    <h1 class="title is-1" :class="{'has-text-grey-light': disableShoppingBasket}">Shopping Basket</h1>
-    <div class="table-container">
-      <table class="table" :class="{'has-text-grey-light': disableShoppingBasket}">
-        <thead>
-          <tr>
-            <th data-label="quantity">
-              Quantity
-            </th>
-            <th data-label="name">
-              Name
-            </th>
-            <th data-label="at">
-              <!-- at -->
-            </th>
-            <th data-label="price">
-              Price
-            </th>
-            <th data-label="action">
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr 
-            v-for="(item, index) in shoppingBasket"
-            :key="index"
-          >
-            <!-- Quantity -->
-            <td>
-              <input 
-                type="number" 
-                class="input" 
-                placeholder="0" 
-                min="0"
-                v-model="item.quantity"
-                :disabled="disableShoppingBasket"
-              >
-            </td>
-            <!-- Name -->
-            <td>
-              <div 
-                class="select is-fullwidth"
-              >
-                <select 
-                  :disabled="disableShoppingBasket"
-                  v-model="item.name"
+    <h1 class="title is-1">Shopping Basket</h1>
+    <form>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th data-label="quantity">
+                Quantity
+              </th>
+              <th data-label="name">
+                Name
+              </th>
+              <th data-label="at">
+                <!-- at -->
+              </th>
+              <th data-label="price">
+                Price
+              </th>
+              <th data-label="action">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              v-for="(item, index) in shoppingBasket"
+              :key="index"
+            >
+              <!-- Quantity -->
+              <td>
+                <input 
+                  type="number" 
+                  class="input" 
+                  placeholder="0" 
+                  min="0"
+                  v-model="item.quantity"
                 >
-                  <option :value="null || ''">Select an item</option>
-                  <option v-for="(item, index) in itemOptions" :key="index">{{ item.name }}</option>
-                </select>
-              </div>
-            </td>
-            <!-- At -->
-            <td class="has-text-centered">
-              at
-            </td>
-            <!-- Price -->
-            <td>
-              <div class="field">
-                <p class="control has-icons-left">
-                  <input 
-                    class="input" 
-                    type="number" 
-                    placeholder="0.00" 
-                    min="0" 
-                    step=".01"
-                    v-model="item.price"
-                    :disabled="disableShoppingBasket"
+              </td>
+              <!-- Name -->
+              <td>
+                <div 
+                  class="select is-fullwidth"
+                >
+                  <select 
+                    @input="(event) => changeItemType(shoppingBasket[index], event)"
                   >
-                  <span class="icon is-small is-left">
-                    <i class="fa-solid fa-dollar-sign"></i>
+                    <option v-for="(option, index) in filteredItemOptions" :selected="item.name === option.name" :key="index">
+                      {{ option.name }}
+                    </option>
+                  </select>
+                </div>
+              </td>
+              <!-- At -->
+              <td class="has-text-centered">
+                at
+              </td>
+              <!-- Price -->
+              <td>
+                <div class="field">
+                  <p class="control has-icons-left">
+                    <input 
+                      class="input" 
+                      type="number" 
+                      placeholder="0.00" 
+                      min="0" 
+                      step=".01"
+                      v-model="item.price"
+                    >
+                    <span class="icon is-small is-left">
+                      <i class="fa-solid fa-dollar-sign"></i>
+                    </span>
+                  </p>
+                </div>
+              </td>
+              <!-- Action -->
+              <td>
+                <button 
+                  class="button is-danger" 
+                  @click="removeItem(item)"
+                >
+                  <span class="icon is-small">
+                    <i class="fa-solid fa-trash-can"></i>
                   </span>
-                </p>
-              </div>
-            </td>
-            <!-- Action -->
-            <td>
-              <button 
-                class="button is-danger" 
-                @click="removeItem(item)"
-                :disabled="disableShoppingBasket"
-              >
-                <span class="icon is-small">
-                  <i class="fa-solid fa-trash-can"></i>
-                </span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </form>
+    <div class="mt-5">
       <!-- Add Item -->
       <div class="dropdown" ref="dropdown">
         <div class="dropdown-trigger">
@@ -103,7 +102,6 @@
             class="button is-primary" 
             aria-haspopup="true" 
             aria-controls="dropdown-menu"
-            :disabled="disableShoppingBasket"
             @focus="toggleDropdown()"
             @blur="toggleDropdown()"
           >
@@ -136,9 +134,6 @@
         Input {{ inputNum }}
       </button>
     </div>
-    <!-- Custom Input -->
-    <h2 class="title is-3 mt-5">Custom Input</h2>
-    <textarea v-model="customInput" class="textarea" :placeholder="`1 Book at 12.49\n1 Book at 12.49\n1 Music CD at 14.99\n1 Chocolate bar at 0.85`"></textarea>
     <div class="mt-5 is-flex is-justify-content-flex-end">
       <button 
         class="button is-primary is-large"
@@ -164,17 +159,25 @@ export default defineComponent({
   async setup() {
     const router = useRouter()
     const store = useStore()
-    const inputs = ref([1,2,3])
     
     if (!store.state.loaded) {
       await store.dispatch('fetchItems')
     }
 
+    const inputs = ref([1,2,3])
+    const dropdown = ref()
     const shoppingBasket = computed<Item[]>(() => store.state.shoppingBasket)
     const itemOptions = computed<Item[]>(() => store.state.itemOptions)
-    const customInput = ref('')
-    const dropdown = ref()
-    const disableShoppingBasket = computed(() => customInput.value.length > 0)
+    const filteredItemOptions = computed(() => {
+      const options = itemOptions.value.reduce((acc: Item[], currentItem: Item) => {
+        const foundItem = acc.find(item => item.name === currentItem.name)
+        if (foundItem) {
+          return acc
+        }
+        return [...acc, {...currentItem}]
+      }, [] as Item[])
+      return options
+    })
 
     const addItem = (item: Item) => {
       shoppingBasket.value.push({...item})
@@ -189,11 +192,16 @@ export default defineComponent({
       dropdown.value.classList.toggle('is-active')
     }
 
-    const getReceipt = () => {
-      if (disableShoppingBasket.value) {
-        console.log('call a function to parse the custom input and update shopping basket')
-      }
+    const changeItemType = (shoppingBasketItem: Item, event: Event) => {
+      const index = (event.target as HTMLSelectElement).selectedIndex
+      const selectedOption = itemOptions.value[index]
 
+      shoppingBasketItem.name = selectedOption.name
+      shoppingBasketItem.isImported = selectedOption.isImported
+      shoppingBasketItem.isSalesTaxExempt = selectedOption.isSalesTaxExempt
+    }
+
+    const getReceipt = () => {
       router.push('/receipt')
     }
 
@@ -204,13 +212,13 @@ export default defineComponent({
     return {
       shoppingBasket,
       itemOptions,
-      customInput,
+      filteredItemOptions,
       dropdown,
-      disableShoppingBasket,
       inputs,
       addItem,
       removeItem,
       toggleDropdown,
+      changeItemType,
       getReceipt,
       setInput
     }
