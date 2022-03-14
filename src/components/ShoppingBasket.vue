@@ -118,42 +118,58 @@
             <a 
               v-for="(item, index) in itemOptions"
               :key="index"
-              class="dropdown-item"
+              class="dropdown-item is-flex is-justify-content-space-between px-4"
               @mousedown="addItem(item)"
             >
-              {{ item.name }}
+              <span>{{ item.name }}</span>
+              <span class="has-text-grey-light">${{ item.price.toFixed(2) }}</span>
             </a>
           </div>
         </div>
       </div>
-
+      <button 
+        @click="setInput(inputNum)"
+        class="button is-primary is-outlined ml-3"
+        v-for="inputNum in inputs"
+        :key="inputNum"
+      >
+        Input {{ inputNum }}
+      </button>
     </div>
     <!-- Custom Input -->
     <h2 class="title is-3 mt-5">Custom Input</h2>
     <textarea v-model="customInput" class="textarea" :placeholder="`1 Book at 12.49\n1 Book at 12.49\n1 Music CD at 14.99\n1 Chocolate bar at 0.85`"></textarea>
-  <div class="mt-5 is-flex is-justify-content-flex-end">
-    <button 
+    <div class="mt-5 is-flex is-justify-content-flex-end">
+      <button 
         class="button is-primary is-large"
+        @click="getReceipt()"
       >
         <span class="icon">
           <i class="fa-solid fa-file-invoice-dollar"></i>
         </span>
         <span>Get Receipt</span>
       </button>
-  </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Item } from '../types/index'
 
 export default defineComponent({
   name: 'ShoppingBasket',
   async setup() {
+    const router = useRouter()
     const store = useStore()
-    await store.dispatch('fetchItems')
+    const inputs = ref([1,2,3])
+    
+    if (!store.state.loaded) {
+      await store.dispatch('fetchItems')
+    }
+
     const shoppingBasket = computed<Item[]>(() => store.state.shoppingBasket)
     const itemOptions = computed<Item[]>(() => store.state.itemOptions)
     const customInput = ref('')
@@ -173,15 +189,30 @@ export default defineComponent({
       dropdown.value.classList.toggle('is-active')
     }
 
+    const getReceipt = () => {
+      if (disableShoppingBasket.value) {
+        console.log('call a function to parse the custom input and update shopping basket')
+      }
+
+      router.push('/receipt')
+    }
+
+    const setInput = (inputNum: number) => {
+      store.dispatch('setInput', inputNum)
+    }
+
     return {
       shoppingBasket,
       itemOptions,
       customInput,
       dropdown,
       disableShoppingBasket,
+      inputs,
       addItem,
       removeItem,
-      toggleDropdown
+      toggleDropdown,
+      getReceipt,
+      setInput
     }
   }
 });
@@ -212,5 +243,10 @@ table th {
 table td, table th {
   vertical-align: middle;
   border: none;
+}
+.dropdown-menu {
+  min-width: 280px;
+  width: 100%;
+  max-width: 15rem;
 }
 </style>

@@ -5,7 +5,8 @@ import { Item } from '../types/index'
 export default createStore({
   state: {
     itemOptions: [],
-    shoppingBasket: []
+    shoppingBasket: [],
+    loaded: false
   },
   getters: {
   },
@@ -15,6 +16,9 @@ export default createStore({
     },
     setShoppingBasket(state, payload) {
       state.shoppingBasket = payload
+    },
+    setLoaded(state, payload) {
+      state.loaded = payload
     }
   },
   actions: {
@@ -22,13 +26,35 @@ export default createStore({
       // Simulate call to api
       const getItems = () => new Promise(resolve => setTimeout(resolve, 1000))
       await getItems()
-      // Get items and add to the store
+      // Get all items from mock data
       const allItems: Item[] = [...input1, ...input2, ...input3]
-      const itemsMap = new Map()
-      allItems.forEach(item => itemsMap.set(item.name, {...item}))
-      const itemOptions = new Set(itemsMap.values())
-      ctx.commit('setItemOptions', Array.from(itemOptions))
-      ctx.commit('setShoppingBasket', input1)
+      // Get item options from mock data
+      const itemOptions = allItems.reduce((acc: Item[], currentItem: Item) => {
+        const foundItem = acc.find(item => item.name === currentItem.name && item.price === currentItem.price)
+        if (foundItem) {
+          return acc
+        }
+        return [...acc, {...currentItem}]
+      }, [] as Item[])
+      // Add initial shopping basket and item options to the store
+      ctx.dispatch('setInput', 1)
+      ctx.commit('setItemOptions', itemOptions)
+      ctx.commit('setLoaded', true)
+    },
+    setInput(ctx, payload) {
+      let input: Item[]
+      switch(payload) {
+        case 3:
+          input = input3
+          break
+        case 2:
+          input = input2
+          break
+        default: 
+          input = input1
+          break
+      }
+      ctx.commit('setShoppingBasket', JSON.parse(JSON.stringify(input)))
     }
   },
   modules: {

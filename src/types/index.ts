@@ -3,5 +3,17 @@ export interface Item {
     name: string,
     price: number,
     isImported: boolean,
-    isTaxExempt: boolean
+    isSalesTaxExempt: boolean
+}
+
+export interface ReceiptLineItem {
+    itemName: string,
+    itemPrice: number, // total price of line item including applicable taxes
+    quantityLabel?: string // quantity and individual item price including applicable taxes
+}
+
+export interface Receipt {
+    lineItems: ReceiptLineItem[],
+    salesTaxes: number,
+    total: number
 }

@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
+import ReceiptView from '@/views/ReceiptView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -7,6 +8,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'home',
     component: HomeView
   },
+  {
+    path: '/receipt',
+    name: 'receipt',
+    component: ReceiptView
+  }
 ]
 
 const router = createRouter({
